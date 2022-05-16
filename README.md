@@ -1,13 +1,13 @@
-# job-market-analysis
+# Job market anlysis in Adelaide
 
-## Scraping jobs in Seek
+### Scraping jobs in Seek
 
-## Scraping jobs in Indeed
+### Scraping jobs in Indeed
 
-## Data Cleaning
+### Data Cleaning
 
-## Feature Engineering
+### Feature Engineering
 
-## EDA
+### EDA
 
-## Data Preprocessing
+### Data Preprocessing
