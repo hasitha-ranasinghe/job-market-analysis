@@ -1,5 +1,7 @@
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import time
 
 '''
 job_url -> https://www.seek.com.au/job/56834934?type=promoted
@@ -21,7 +23,8 @@ def get_page(url):
     return soup
 
 
-def extract_job_urls(soup):
+def extract_job_url(soup):
+    job_links = []
     base_url = 'https://www.seek.com.au/'
     jobs = soup.find_all('article', {'data-automation': ['normalJob', 'premiumJob']})
 
@@ -31,145 +34,24 @@ def extract_job_urls(soup):
     return job_links
 
 
-# extract method for main pages
-# def extract_page_content(soup):
-#     jobs = soup.find_all('article', {'data-automation': ['normalJob', 'premiumJob']})
-#     print(len(jobs))
-#
-#     for item in jobs:
-#         job_title = item.find('a', {'data-automation': 'jobTitle'}).text.strip()
-#         link = item.find('a', href=True)
-#         print(link['href'])
-#         company = item.find('a', {'data-automation': 'jobCompany'}).text.strip()
-#
-#         try:
-#             if item.find('span', {'data-automation': 'jobPremium'}).text == 'Featured':
-#                 is_featured = True
-#
-#         except AttributeError as error:
-#             is_featured = False
-#
-#         location = item.find('a', {'data-automation': 'jobLocation'}).text.strip()
-#         classification = item.find('a', {'data-automation': 'jobClassification'}).text.strip()
-#         sub_classification = item.find('a', {'data-automation': 'jobSubClassification'}).text.strip()
-#
-#         job = {
-#             'job_title': job_title,
-#             'company': company,
-#             'is_featured': is_featured,
-#             'location': location,
-#             'classification': classification,
-#             'sub_classification': sub_classification
-#         }
-#
-#         job_list.append(job)
-#     return job_list
 
 
-def extract_job_content(soup):
-    title = soup.find('h1', {'data-automation': 'job-detail-title'}).text.strip()
-    company = soup.find('span', {'data-automation': 'advertiser-name'}).text.strip()
+def get_all_job_links(page):
+    job_links = []
 
-    divs_location_classification = soup.find_all('div', class_='yvsb870 _14uh9944y o76g430')
-
-    location = divs_location_classification[0].text.strip()
-    classification = divs_location_classification[1].text.strip()
-    sub_classification = divs_location_classification[2].text.strip()
-
-    if len(divs_location_classification) > 4:
-        salary = divs_location_classification[3].text.strip()
-        work_type = divs_location_classification[4].text.strip()
-
-    else:
-        salary = 0
-        work_type = divs_location_classification[3].text.strip()
-
-    date_div = soup.find_all('span', class_='yvsb870 _14uh9944u _1qw3t4i0 _1qw3t4i1y _1qw3t4i1 _1d0g9qk4 _1qw3t4ib')
-
-    if len(date_div) > 1:
-        date = date_div[1].text.split()[1]
-    else:
-        date = date_div[0].text.split()[1]
-
-    div_description = soup.find('div', class_='yvsb870 _1v38w810')
-    # print(div_description.findAll('strong'))
-
-    list_header = []
-    list_dictionary = {}
-    description = []
-
-    # for item in div_description.contents:
-    #     bullets = []
-    #     if item.name == 'p' and item.text.strip() != '':
-    #         if item.next.name == 'strong':
-    #             list_header.append(item.text.strip())
-    #             # print(item.nextSibling.name)
-    #             if item.nextSibling.name == 'ul':
-    #                 for li in item.nextSibling():
-    #                     bullets.append(li.text.strip())
-    #
-    #                 list_dictionary[list_header[-1]] = bullets
-    #         else:
-    #             description.append(item.text.strip())
-    #             list_dictionary['No Header'] = description
-
-    d = div_description.find()
-
-    for item in div_description:
-        if len(item.find_all()) != 0:
-            for i in item.find_all():
-                print(f'child: {i.name}')
-
-        print(f'item: {item.name}')
-
-    for item in div_description.contents:
-        bullets = []
-        if item.name == 'p' and item.text.strip() != '':
-            list_header.append(item.text.strip())
-
-            if item.next.name == 'strong':
-                list_header.append(item.text.strip())
-                # print(item.nextSibling.name)
-                if item.nextSibling.name == 'ul':
-                    for li in item.nextSibling:
-                        bullets.append(li.text.strip())
-
-                    list_dictionary[list_header[-1]] = bullets
-            else:
-                description.append(item.text.strip())
-                list_dictionary['No Header'] = description
+    for i in range(1, page):
+        page_url = create_url(i)
+        page_soup = get_page(page_url)
+        job_links.append(extract_job_url(page_soup))
+        time.sleep(1)
+        print(f'getting links from page {i}')
+    return job_links
 
 
-    # print(list_header)
-    # print(list_dictionary)
-    # print(description)
+job_links = get_all_job_links(3)
+job_links = [item for elem in job_links for item in elem]
 
-    # print(f'\ntitle: {title}, company: {company}, location: {location}, ' f'classification: {classification},
-    # sub_classification: {sub_classification}, work-type: {work_type}, salary: {salary},' f'date: {date}')
-
-    # job = {
-    #     'job_title': job_title,
-    #     'company': company,
-    #     'is_featured': is_featured,
-    #     'location': location,
-    #     'classification': classification,
-    #     'sub_classification': sub_classification
-    # }
+df = pd.DataFrame(job_links, columns=['link'])
+df.to_csv('data/job-links', index=False)
 
 
-job_links = []
-job_list = []
-
-page_url = create_url(1)
-page_soup = get_page(page_url)
-job_links = extract_job_urls(page_soup)
-
-# print(*job_links, sep='\n')
-# print(job_links[0])
-
-job_soup = get_page('https://www.seek.com.au/job/56834934?type=promoted#sol=038f232f723e05334090555b9702357a2e095e9b')
-extract_job_content(job_soup)
-
-# for link in job_links:
-#     job_soup = get_page(link)
-#     extract_job_content(job_soup)
