@@ -8,8 +8,7 @@ def get_page(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                              'Chrome/101.0.4951.67 Safari/537.36'}
     r = requests.get(url, headers)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    return soup
+    return BeautifulSoup(r.content, 'html.parser')
 
 
 def extract_job_content(soup):
@@ -56,27 +55,27 @@ def extract_job_content(soup):
     return job
 
 
-links = pd.read_csv('data/job-links')
-links = links['link'].values.tolist()
+def main():
+    job_list = []
+    links = pd.read_csv('data/job-links.csv')
+    links = links['link'].values.tolist()
+    for idx, val in enumerate(links, start=1):
+        try:
+            soup = get_page(val)
+            job_list.append(extract_job_content(soup))
+            # time.sleep(0.5)
+            print(f'job {idx} done')
+
+        except Exception as e:
+            print(f'Error: {e}')
+            print(f'Error class: {e.__class__}')
+            print(f'job link: {val}')
+            continue
+
+    df = pd.DataFrame(job_list)
+    df.to_csv('data/job-content.csv', index=False)
+    print('file created')
 
 
-count = 1
-job_list = []
-for link in links:
-
-    try:
-        soup = get_page(link)
-        job_list.append(extract_job_content(soup))
-        time.sleep(0.5)
-        print(f'job {count}')
-        count += 1
-    except Exception as e:
-        print(f'Error: {e}')
-        print(f'Error class: {e.__class__}')
-        print(f'job link {link}')
-        continue
-
-
-df = pd.DataFrame(job_list)
-df.to_csv('data/job-content.csv', index=False)
-print('file created')
+if __name__ == '__main__':
+    main()
