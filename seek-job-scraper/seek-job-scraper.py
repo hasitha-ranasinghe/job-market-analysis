@@ -10,9 +10,9 @@ job_url -> https://www.seek.com.au/job/56834934?type=promoted
 '''
 
 
-def create_url(page):
+def create_url(keyword, location):
     base_url = 'https://www.seek.com.au/'
-    return f'{base_url}data-analyst-jobs/in-All-Adelaide-SA?page={page}'
+    return f'{base_url}{keyword}-jobs/in-{location}?page='
 
 
 def get_page(url):
@@ -34,13 +34,31 @@ def get_urls_in_page(soup):
 
 
 def get_all_job_urls(page):
+    keywords = ['data analyst', 'data scientist', 'graduate analyst']
+    location = ['All Adelaide SA', '5034']
+
+    params = []
+    for k in keywords:
+        for l in location:
+            params.append(
+                {
+                    'keyword': k,
+                    'location': l
+                }
+            )
+
+    page_urls = []
+    for idx, val in enumerate(params):
+        page_urls.append(create_url(val['keyword'].replace(' ', '-'), val['location'].replace(' ', '-')))
+
     links = []
-    for i in range(1, page):
-        page_url = create_url(i)
-        page_soup = get_page(page_url)
-        links.append(get_urls_in_page(page_soup))
-        time.sleep(0.5)
-        print(f'getting links from page {i}')
+    for url in page_urls:
+        for i in range(1, page):
+            page_url = f'{url}{i}'
+            page_soup = get_page(page_url)
+            links.append(get_urls_in_page(page_soup))
+            time.sleep(0.5)
+            print(f'getting urls from {url} page {i}')
     return links
 
 
@@ -54,3 +72,4 @@ def main(pages):
 
 if __name__ == '__main__':
     main(5)
+

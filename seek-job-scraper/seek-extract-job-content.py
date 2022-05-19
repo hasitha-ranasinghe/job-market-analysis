@@ -63,7 +63,7 @@ def main():
         try:
             soup = get_page(val)
             job_list.append(extract_job_content(soup))
-            # time.sleep(0.5)
+            time.sleep(0.5)
             print(f'job {idx} done')
 
         except Exception as e:
