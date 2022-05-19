@@ -59,14 +59,24 @@ def extract_job_content(soup):
 links = pd.read_csv('data/job-links')
 links = links['link'].values.tolist()
 
+
 count = 1
 job_list = []
-for link in links[0:3]:
-    soup = get_page(link)
-    job_list.append(extract_job_content(soup))
-    time.sleep(1)
-    print(f'job {count}')
-    count += 1
+for link in links:
+
+    try:
+        soup = get_page(link)
+        job_list.append(extract_job_content(soup))
+        time.sleep(0.5)
+        print(f'job {count}')
+        count += 1
+    except Exception as e:
+        print(f'Error: {e}')
+        print(f'Error class: {e.__class__}')
+        print(f'job link {link}')
+        continue
 
 
-print(job_list)
+df = pd.DataFrame(job_list)
+df.to_csv('data/job-content.csv', index=False)
+print('file created')

@@ -34,8 +34,6 @@ def extract_job_url(soup):
     return job_links
 
 
-
-
 def get_all_job_links(page):
     job_links = []
 
@@ -43,15 +41,15 @@ def get_all_job_links(page):
         page_url = create_url(i)
         page_soup = get_page(page_url)
         job_links.append(extract_job_url(page_soup))
-        time.sleep(1)
+        time.sleep(0.5)
         print(f'getting links from page {i}')
     return job_links
 
 
-job_links = get_all_job_links(3)
+job_links = get_all_job_links(25)
 job_links = [item for elem in job_links for item in elem]
 
 df = pd.DataFrame(job_links, columns=['link'])
-df.to_csv('data/job-links', index=False)
+df.to_csv('data/job-links.csv', index=False)
 
 
