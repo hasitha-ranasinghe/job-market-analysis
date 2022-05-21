@@ -2,7 +2,8 @@ import time
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-import datetime
+from datetime import datetime, timedelta
+import re
 
 
 def get_page(url):
@@ -48,17 +49,32 @@ def extract_job_content(soup, url):
         'sub_classification': sub_classification,
         'salary': salary,
         'work_type': work_type,
-        'posted_date': date,
+        'posted_date': clean_posted_date(date),
         'url': url,
         'description': tags_description
     }
     return job
 
 
+def clean_posted_date(date):
+    lst = re.split('(\d+)', date)
+    symbol = lst[2]
+    today = datetime.now()
+    day = timedelta(days=int(lst[1]))
+
+    if symbol in ['d', 'd+']:
+        post_date = today - day
+    elif symbol in ['h']:
+        post_date = today
+
+    return post_date.strftime("%d/%m/%Y")
+
+
 def main():
     job_list = []
     links = pd.read_csv('data/job-links.csv')
     links = links['link'].values.tolist()
+    rejected = 0
     for idx, val in enumerate(links, start=1):
         try:
             soup = get_page(val)
@@ -70,16 +86,22 @@ def main():
             print(f'Error: {e}')
             print(f'Error class: {e.__class__}')
             print(f'job link: {val}')
+            rejected += 1
             continue
 
     df = pd.DataFrame(job_list)
     df.to_csv('data/job-content.csv', index=False)
+
+    print(f'--- Extraction summary --- \n'
+          f'Extracted jobs: {len(links) - rejected}\n'
+          f'Rejected jobs: {rejected}\n')
+
     print('file created')
 
 
 if __name__ == '__main__':
-    start = datetime.datetime.now()
     session = requests.session()
+    start = datetime.now()
     main()
-    finish = datetime.datetime.now() - start
+    finish = datetime.now() - start
     print(finish)

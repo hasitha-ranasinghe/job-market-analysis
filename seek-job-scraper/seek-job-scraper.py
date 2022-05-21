@@ -33,7 +33,7 @@ def get_urls_in_page(soup):
 
 
 def get_all_job_urls(page):
-    keywords = ['data analyst', 'data scientist']
+    keywords = ['data analyst', 'data scientist', 'data engineer']
     location = ['All Adelaide SA']
 
     params = []
@@ -67,6 +67,9 @@ def main(pages):
 
     df = pd.DataFrame(job_links, columns=['link'])
     df.to_csv('data/job-links.csv', index=False)
+    print(f'{len(job_links)} jobs extracted...\n'
+          f'Saved to file data/job-links.csv')
+
 
 
 # no-session 0:00:20.173955
@@ -75,6 +78,6 @@ def main(pages):
 if __name__ == '__main__':
     session = requests.session()
     start = datetime.datetime.now()
-    main(25)
+    main(30)
     finish = datetime.datetime.now() - start
     print(finish)
