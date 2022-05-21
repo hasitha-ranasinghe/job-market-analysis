@@ -2,16 +2,15 @@ import time
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import datetime
 
 
 def get_page(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                             'Chrome/101.0.4951.67 Safari/537.36'}
-    r = requests.get(url, headers)
+    r = session.get(url)
     return BeautifulSoup(r.content, 'html.parser')
 
 
-def extract_job_content(soup):
+def extract_job_content(soup, url):
     # title and company
     title = soup.find('h1', {'data-automation': 'job-detail-title'}).text.strip()
     company = soup.find('span', {'data-automation': 'advertiser-name'}).text.strip()
@@ -50,6 +49,7 @@ def extract_job_content(soup):
         'salary': salary,
         'work_type': work_type,
         'posted_date': date,
+        'url': url,
         'description': tags_description
     }
     return job
@@ -62,8 +62,8 @@ def main():
     for idx, val in enumerate(links, start=1):
         try:
             soup = get_page(val)
-            job_list.append(extract_job_content(soup))
-            time.sleep(0.5)
+            job_list.append(extract_job_content(soup, val))
+            # time.sleep(0.5)
             print(f'job {idx} done')
 
         except Exception as e:
@@ -78,4 +78,8 @@ def main():
 
 
 if __name__ == '__main__':
+    start = datetime.datetime.now()
+    session = requests.session()
     main()
+    finish = datetime.datetime.now() - start
+    print(finish)

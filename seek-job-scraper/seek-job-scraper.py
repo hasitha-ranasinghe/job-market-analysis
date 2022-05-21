@@ -3,6 +3,7 @@ import lxml.html as lh
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+import datetime
 
 '''
 job_url -> https://www.seek.com.au/job/56834934?type=promoted
@@ -16,9 +17,7 @@ def create_url(keyword, location):
 
 
 def get_page(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                             'Chrome/101.0.4951.67 Safari/537.36'}
-    r = requests.get(url, headers)
+    r = session.get(url)
     return BeautifulSoup(r.content, 'html.parser')
 
 
@@ -34,8 +33,8 @@ def get_urls_in_page(soup):
 
 
 def get_all_job_urls(page):
-    keywords = ['data analyst', 'data scientist', 'graduate analyst']
-    location = ['All Adelaide SA', '5034']
+    keywords = ['data analyst', 'data scientist']
+    location = ['All Adelaide SA']
 
     params = []
     for k in keywords:
@@ -57,8 +56,8 @@ def get_all_job_urls(page):
             page_url = f'{url}{i}'
             page_soup = get_page(page_url)
             links.append(get_urls_in_page(page_soup))
-            time.sleep(0.5)
-            print(f'getting urls from {url} page {i}')
+            # time.sleep(0.5)
+            print(f'getting urls from page {i}')
     return links
 
 
@@ -70,6 +69,12 @@ def main(pages):
     df.to_csv('data/job-links.csv', index=False)
 
 
-if __name__ == '__main__':
-    main(5)
+# no-session 0:00:20.173955
+# with session 0:00:15.537896
 
+if __name__ == '__main__':
+    session = requests.session()
+    start = datetime.datetime.now()
+    main(25)
+    finish = datetime.datetime.now() - start
+    print(finish)
