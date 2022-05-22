@@ -4,11 +4,29 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import re
+from pathlib import Path
 
 
 def get_page(url):
     r = session.get(url)
     return BeautifulSoup(r.content, 'html.parser')
+
+
+def clean_posted_date(date):
+
+    lst = re.split('(\d+)', date)
+    symbol = lst[2]
+    today = datetime.now()
+    day = timedelta(days=int(lst[1]))
+
+    if symbol in ['d', 'd+']:
+        post_date = today - day
+    elif symbol in ['h']:
+        post_date = today
+    else:
+        post_date = today - timedelta(days=30)
+
+    return post_date.strftime("%d/%m/%Y")
 
 
 def extract_job_content(soup, url):
@@ -56,23 +74,21 @@ def extract_job_content(soup, url):
     return job
 
 
-def clean_posted_date(date):
-    lst = re.split('(\d+)', date)
-    symbol = lst[2]
-    today = datetime.now()
-    day = timedelta(days=int(lst[1]))
+def save_file(job_list, file_name):
+    file_path = Path('data', 'content', file_name)
+    if file_path.exists():
+        print("\nReplacing existing file! \n", file_name)
+    else:
+        print("\nCreating a new file.. \n", file_name)
 
-    if symbol in ['d', 'd+']:
-        post_date = today - day
-    elif symbol in ['h']:
-        post_date = today
-
-    return post_date.strftime("%d/%m/%Y")
+    df = pd.DataFrame(job_list)
+    df.to_csv(file_path, index=False)
 
 
 def main():
     job_list = []
-    links = pd.read_csv('data/job-links.csv')
+    file_name = '2022-05-22-data-analyst-jobs-in-all-adelaide-sa.csv'
+    links = pd.read_csv(f'data/links/{file_name}')
     links = links['link'].values.tolist()
     rejected = 0
     for idx, val in enumerate(links, start=1):
@@ -89,14 +105,11 @@ def main():
             rejected += 1
             continue
 
-    df = pd.DataFrame(job_list)
-    df.to_csv('data/job-content.csv', index=False)
+    save_file(job_list, file_name)
 
-    print(f'--- Extraction summary --- \n'
+    print(f'\n--- Extraction summary --- \n'
           f'Extracted jobs: {len(links) - rejected}\n'
           f'Rejected jobs: {rejected}\n')
-
-    print('file created')
 
 
 if __name__ == '__main__':
@@ -104,4 +117,4 @@ if __name__ == '__main__':
     start = datetime.now()
     main()
     finish = datetime.now() - start
-    print(finish)
+    print(f'time spent: {finish}')

@@ -2,8 +2,8 @@ import requests
 import lxml.html as lh
 from bs4 import BeautifulSoup
 import pandas as pd
-import time
-import datetime
+from datetime import datetime
+from pathlib import Path
 
 '''
 job_url -> https://www.seek.com.au/job/56834934?type=promoted
@@ -33,9 +33,6 @@ def get_urls_in_page(soup):
 
 
 def get_all_job_urls(page):
-    keywords = ['data analyst', 'data scientist', 'data engineer']
-    location = ['All Adelaide SA']
-
     params = []
     for k in keywords:
         for l in location:
@@ -61,23 +58,33 @@ def get_all_job_urls(page):
     return links
 
 
+def create_file(job_links):
+    today = datetime.now().strftime("%Y-%m-%d")
+    title = keywords[0].replace(" ", "-").lower()
+    loc = location[0].replace(" ", "-").lower()
+
+    file_name = f'{today}-{title}-jobs-in-{loc}.csv'
+    file_path = Path('data', 'links', file_name)
+
+    if file_path.exists():
+        print("Replacing existing file! \n", file_name)
+    else:
+        print("Creating a new file.. \n", file_name)
+
+    df = pd.DataFrame(job_links, columns=['link'])
+    df.to_csv(file_path, index=False)
+
+
 def main(pages):
     # flatten the 2D list
     job_links = [item for elem in get_all_job_urls(pages) for item in elem]
+    print(f'{len(job_links)} jobs extracted...')
 
-    df = pd.DataFrame(job_links, columns=['link'])
-    df.to_csv('data/job-links.csv', index=False)
-    print(f'{len(job_links)} jobs extracted...\n'
-          f'Saved to file data/job-links.csv')
+    create_file(job_links)
 
-
-
-# no-session 0:00:20.173955
-# with session 0:00:15.537896
 
 if __name__ == '__main__':
     session = requests.session()
-    start = datetime.datetime.now()
+    keywords = ['data analyst', 'data scientist']
+    location = ['All Adelaide SA']
     main(30)
-    finish = datetime.datetime.now() - start
-    print(finish)
