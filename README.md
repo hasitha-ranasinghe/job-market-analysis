@@ -1,8 +1,7 @@
-# Job market anlysis in Adelaide
+# Job market analysis in Adelaide
+(Project under progress... Updating readme soon)
 
-### Scraping jobs in Seek
-
-### Scraping jobs in Indeed
+### Scraping job details from Seek
 
 ### Data Cleaning
 
@@ -11,3 +10,5 @@
 ### EDA
 
 ### Data Preprocessing
+
+### Power BI dashboard to visualize insights
